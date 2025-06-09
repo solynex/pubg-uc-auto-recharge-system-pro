@@ -31,11 +31,12 @@ class PUBG_Database {
             UNIQUE KEY uc_amount (uc_amount)
         ) $charset_collate;";
         
-        $sql_codes = "CREATE TABLE {$this->codes_table} (
-            id mediumint(9) NOT NULL AUTO_INCREMENT,
-            category_id mediumint(9) NOT NULL,
-            code varchar(255) NOT NULL,
-            status varchar(20) NOT NULL DEFAULT 'available',
+            $sql_codes = "CREATE TABLE {$this->codes_table} (
+    id mediumint(9) NOT NULL AUTO_INCREMENT,
+    category_id mediumint(9) NOT NULL,
+    code varchar(255) NOT NULL,
+    is_bundle TINYINT(1) DEFAULT 0,
+    status varchar(20) NOT NULL DEFAULT 'available',
             order_id bigint(20) NULL,
             player_id varchar(255) NULL,
             date_added datetime DEFAULT CURRENT_TIMESTAMP,

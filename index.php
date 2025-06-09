@@ -32,6 +32,7 @@ class PUBG_Recharge_System {
     private function load_modules() {
         require_once PUBG_RECHARGE_DIR . 'includes/class-database.php';
         require_once PUBG_RECHARGE_DIR . 'includes/class-api.php';
+        require_once PUBG_RECHARGE_DIR . 'includes/class-bundle.php';
         require_once PUBG_RECHARGE_DIR . 'includes/class-woocommerce.php';
         require_once PUBG_RECHARGE_DIR . 'includes/class-admin.php';
     }

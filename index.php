@@ -32,9 +32,12 @@ class PUBG_Recharge_System {
     private function load_modules() {
         require_once PUBG_RECHARGE_DIR . 'includes/class-database.php';
         require_once PUBG_RECHARGE_DIR . 'includes/class-api.php';
-        require_once PUBG_RECHARGE_DIR . 'includes/class-bundle.php';
+        require_once PUBG_RECHARGE_DIR . 'includes/class-api-fallback.php';
         require_once PUBG_RECHARGE_DIR . 'includes/class-woocommerce.php';
         require_once PUBG_RECHARGE_DIR . 'includes/class-admin.php';
+        
+        // تشغيل API Fallback
+        new PUBG_API_Fallback();
     }
     
     public function init() {
@@ -50,15 +53,14 @@ class PUBG_Recharge_System {
         }
     }
     
-  public function activation() {
-    $db = new PUBG_Database();
-    $db->create_tables();
-    $this->add_default_options();
-    wp_schedule_event(time(), 'daily', 'pubg_daily_cleanup');
-    
-    $bundle = new PUBG_Bundle();
-    $bundle->upgrade_database();
-}
+    public function activation() {
+        $db = new PUBG_Database();
+        $db->create_tables();
+        $this->add_default_options();
+        wp_schedule_event(time(), 'daily', 'pubg_daily_cleanup');
+        
+        // ✅ تم حذف Bundle upgrade من هنا
+    }
     
     public function deactivation() {
         wp_clear_scheduled_hook('pubg_daily_cleanup');
@@ -370,7 +372,7 @@ function pubg_count_low_stock_categories() {
     return $low_stock_count;
 }
 
-// AJAX Handlers - مُحدثة بدون استخدام الـ Classes
+// AJAX Handlers
 add_action('wp_ajax_pubg_validate_player', 'pubg_ajax_validate_player');
 add_action('wp_ajax_nopriv_pubg_validate_player', 'pubg_ajax_validate_player');
 
@@ -444,7 +446,6 @@ function pubg_ajax_manual_process() {
     
     delete_post_meta($order_id, '_pubg_processed');
     
-    // استخدام نفس منطق المعالجة من الكود الأصلي
     pubg_process_order($order_id);
     
     wp_send_json_success(array(
@@ -495,25 +496,27 @@ function pubg_process_order($order_id) {
             }
         }
     }
-   if ($has_pubg_items) {
-    global $wpdb;
-    $log_table = $wpdb->prefix . 'pubg_recharge_logs';
     
-    $failed_count = $wpdb->get_var($wpdb->prepare(
-        "SELECT COUNT(*) FROM $log_table WHERE order_id = %d AND status = 'failed'",
-        $order_id
-    ));
-    
-    if ($failed_count == 0) {
-        update_post_meta($order_id, '_pubg_processed', 'yes');
-        pubg_debug_log("PUBG order processing completed successfully", array('order_id' => $order_id));
-    } else {
-        pubg_debug_log("PUBG order has failed items, keeping for retry", array(
-            'order_id' => $order_id,
-            'failed_count' => $failed_count
+    // ✅ الإصلاح الأساسي - التحقق من الفشل قبل وضع علامة processed
+    if ($has_pubg_items) {
+        global $wpdb;
+        $log_table = $wpdb->prefix . 'pubg_recharge_logs';
+        
+        $failed_count = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $log_table WHERE order_id = %d AND status = 'failed'",
+            $order_id
         ));
+        
+        if ($failed_count == 0) {
+            update_post_meta($order_id, '_pubg_processed', 'yes');
+            pubg_debug_log("PUBG order processing completed successfully", array('order_id' => $order_id));
+        } else {
+            pubg_debug_log("PUBG order has failed items, keeping for retry", array(
+                'order_id' => $order_id,
+                'failed_count' => $failed_count
+            ));
+        }
     }
-}
 }
 
 function pubg_allocate_code($order_id, $product_id, $variation_id, $player_id, $item_id) {
@@ -668,6 +671,7 @@ function pubg_daily_cleanup_function() {
     
     pubg_send_notification($subject, $message);
 }
+
 // Admin Notices
 add_action('admin_notices', 'pubg_admin_notices');
 function pubg_admin_notices() {

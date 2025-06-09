@@ -548,10 +548,25 @@ public function validate_cart($passed, $product_id, $quantity) {
             }
         }
         
-        if ($has_pubg_items) {
-            update_post_meta($order_id, '_pubg_processed', 'yes');
-            pubg_debug_log("PUBG order processing completed", array('order_id' => $order_id));
-        }
+    if ($has_pubg_items) {
+    global $wpdb;
+    $log_table = $wpdb->prefix . 'pubg_recharge_logs';
+    
+    $failed_count = $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM $log_table WHERE order_id = %d AND status = 'failed'",
+        $order_id
+    ));
+    
+    if ($failed_count == 0) {
+        update_post_meta($order_id, '_pubg_processed', 'yes');
+        pubg_debug_log("PUBG order processing completed successfully", array('order_id' => $order_id));
+    } else {
+        pubg_debug_log("PUBG order has failed items, keeping for retry", array(
+            'order_id' => $order_id,
+            'failed_count' => $failed_count
+        ));
+    }
+}
     }
     
     private function allocate_code($order_id, $product_id, $variation_id, $player_id, $item_id) {

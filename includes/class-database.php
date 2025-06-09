@@ -49,44 +49,50 @@ class PUBG_Database {
             KEY order_id (order_id)
         ) $charset_collate;";
         
-        $sql_log = "CREATE TABLE {$this->log_table} (
-            id mediumint(9) NOT NULL AUTO_INCREMENT,
-            code_id mediumint(9) NOT NULL,
-            order_id bigint(20) NOT NULL,
-            player_id varchar(255) NOT NULL,
-            status varchar(50) NOT NULL,
-            message text NULL,
-            debug_data text NULL,
-            date_created datetime DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            KEY code_id (code_id),
-            KEY order_id (order_id),
-            KEY status (status),
-            KEY date_created (date_created)
-        ) $charset_collate;";
-        
-        $sql_pending = "CREATE TABLE {$this->pending_table} (
-            id mediumint(9) NOT NULL AUTO_INCREMENT,
-            order_id bigint(20) NOT NULL,
-            product_id mediumint(9) NOT NULL,
-            variation_id mediumint(9) NULL,
-            player_id varchar(255) NOT NULL,
-            category_id mediumint(9) NOT NULL,
-            status varchar(50) NOT NULL DEFAULT 'pending',
-            priority int NOT NULL DEFAULT 1,
-            retry_count int DEFAULT 0,
-            last_attempt datetime NULL,
-            next_attempt datetime NULL,
-            error_message text NULL,
-            date_created datetime DEFAULT CURRENT_TIMESTAMP,
-            date_updated datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            UNIQUE KEY unique_order_player (order_id, player_id),
-            KEY status (status),
-            KEY priority (priority),
-            KEY next_attempt (next_attempt)
-        ) $charset_collate;";
-        
+     $sql_log = "CREATE TABLE {$this->log_table} (
+    id mediumint(9) NOT NULL AUTO_INCREMENT,
+    code_id mediumint(9) NOT NULL,
+    order_id bigint(20) NOT NULL,
+    item_id bigint(20) NOT NULL,
+    product_id mediumint(9) NOT NULL,
+    variation_id mediumint(9) NULL,
+    player_id varchar(255) NOT NULL,
+    status varchar(50) NOT NULL,
+    message text NULL,
+    debug_data text NULL,
+    date_created datetime DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY unique_order_item (order_id, item_id),
+    KEY code_id (code_id),
+    KEY order_id (order_id),
+    KEY item_id (item_id),
+    KEY product_id (product_id),
+    KEY status (status),
+    KEY date_created (date_created)
+) $charset_collate;";
+
+$sql_pending = "CREATE TABLE {$this->pending_table} (
+    id mediumint(9) NOT NULL AUTO_INCREMENT,
+    order_id bigint(20) NOT NULL,
+    item_id bigint(20) NOT NULL,
+    product_id mediumint(9) NOT NULL,
+    variation_id mediumint(9) NULL,
+    player_id varchar(255) NOT NULL,
+    category_id mediumint(9) NOT NULL,
+    status varchar(50) NOT NULL DEFAULT 'pending',
+    priority int NOT NULL DEFAULT 1,
+    retry_count int DEFAULT 0,
+    last_attempt datetime NULL,
+    next_attempt datetime NULL,
+    error_message text NULL,
+    date_created datetime DEFAULT CURRENT_TIMESTAMP,
+    date_updated datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY unique_order_item (order_id, item_id),
+    KEY status (status),
+    KEY priority (priority),
+    KEY next_attempt (next_attempt)
+) $charset_collate;";
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql_categories);
         dbDelta($sql_codes);

@@ -124,20 +124,15 @@ class PUBG_Admin {
         global $wpdb;
         $categories_table = $wpdb->prefix . 'pubg_recharge_categories';
         
-       if (isset($_POST['action']) && $_POST['action'] == 'add') {
-    $category_id = $wpdb->insert($categories_table, array(
-        'name' => sanitize_text_field($_POST['name']),
-        'uc_amount' => intval($_POST['uc_amount']),
-        'description' => sanitize_textarea_field($_POST['description'])
-    ));
-    
-    if ($category_id) {
-        $bundle = new PUBG_Bundle();
-        $bundle->save_bundle_settings($wpdb->insert_id, $_POST);
-    }
-    
-    echo '<div class="notice notice-success"><p>Category added successfully!</p></div>';
-}
+        if (isset($_POST['action']) && $_POST['action'] == 'add') {
+            // ✅ تم حذف Bundle code من هنا
+            $wpdb->insert($categories_table, array(
+                'name' => sanitize_text_field($_POST['name']),
+                'uc_amount' => intval($_POST['uc_amount']),
+                'description' => sanitize_textarea_field($_POST['description'])
+            ));
+            echo '<div class="notice notice-success"><p>Category added successfully!</p></div>';
+        }
         
         if (isset($_GET['delete'])) {
             $wpdb->delete($categories_table, array('id' => intval($_GET['delete'])));
@@ -168,10 +163,6 @@ class PUBG_Admin {
                                 <th scope="row">Description</th>
                                 <td><textarea name="description" class="large-text" placeholder="Optional description..."></textarea></td>
                             </tr>
-                            <?php 
-$bundle = new PUBG_Bundle();
-$bundle->add_bundle_fields(); 
-?>
                         </table>
                         <p class="submit">
                             <input type="submit" class="button button-primary" value="Add Category">
@@ -229,37 +220,28 @@ $bundle->add_bundle_fields();
         global $wpdb;
         $codes_table = $wpdb->prefix . 'pubg_recharge_codes';
         
-      if (isset($_POST['action']) && $_POST['action'] == 'add_codes') {
-    $category_id = intval($_POST['category_id']);
-    $codes = explode("\n", trim($_POST['codes']));
-    $is_bundle = get_option("pubg_category_{$category_id}_is_bundle", false);
-    
-    if ($is_bundle) {
-        // معالجة Bundle codes
-        $bundle = new PUBG_Bundle();
-        $result = $bundle->process_bundle_codes($category_id, $codes, true);
-        echo '<div class="notice notice-success"><p>' . $result['added'] . ' bundle codes added successfully! ' . ($result['errors'] > 0 ? $result['errors'] . ' errors.' : '') . '</p></div>';
-    } else {
-        // معالجة عادية (الكود الأصلي)
-        $added_count = 0;
-        
-        foreach ($codes as $code) {
-            $code = trim($code);
-            if (!empty($code)) {
-                $existing = $wpdb->get_var($wpdb->prepare("SELECT id FROM $codes_table WHERE code = %s", $code));
-                if (!$existing) {
-                    $wpdb->insert($codes_table, array(
-                        'category_id' => $category_id,
-                        'code' => $code,
-                        'status' => 'available'
-                    ));
-                    $added_count++;
+        if (isset($_POST['action']) && $_POST['action'] == 'add_codes') {
+            $category_id = intval($_POST['category_id']);
+            $codes = explode("\n", trim($_POST['codes']));
+            $added_count = 0;
+            
+            // ✅ تم إزالة Bundle processing code
+            foreach ($codes as $code) {
+                $code = trim($code);
+                if (!empty($code)) {
+                    $existing = $wpdb->get_var($wpdb->prepare("SELECT id FROM $codes_table WHERE code = %s", $code));
+                    if (!$existing) {
+                        $wpdb->insert($codes_table, array(
+                            'category_id' => $category_id,
+                            'code' => $code,
+                            'status' => 'available'
+                        ));
+                        $added_count++;
+                    }
                 }
             }
+            echo '<div class="notice notice-success"><p>' . $added_count . ' codes added successfully!</p></div>';
         }
-        echo '<div class="notice notice-success"><p>' . $added_count . ' codes added successfully!</p></div>';
-    }
-}
         
         $categories = pubg_get_categories();
         $filter_category = isset($_GET['category_id']) ? intval($_GET['category_id']) : 0;

@@ -143,7 +143,7 @@ class PUBG_WooCommerce {
         }
     }
     
-  public function add_player_field() {
+    public function add_player_field() {
         global $product;
         
         $is_pubg = get_post_meta($product->get_id(), 'is_pubg_recharge', true);
@@ -191,7 +191,7 @@ class PUBG_WooCommerce {
             }
             .pubg-player-input {
                 width: 100%;
-                padding: 12px 85px 12px 16px; /* مساحة للزرار من اليمين */
+                padding: 12px 85px 12px 16px;
                 border: 2px solid #ddd;
                 border-radius: 6px;
                 font-size: 16px;
@@ -235,14 +235,13 @@ class PUBG_WooCommerce {
                 align-items: center;
                 justify-content: center;
             }
-            /* RTL Support for Arabic Sites */
             [dir="rtl"] .pubg-player-input {
-                padding: 12px 16px 12px 85px; /* مساحة للزرار من الشمال */
+                padding: 12px 16px 12px 85px;
                 text-align: right;
             }
             [dir="rtl"] .pubg-verify-btn {
                 right: auto;
-                left: 4px; /* الزرار في الشمال للعربي */
+                left: 4px;
             }
             .pubg-verify-btn:hover {
                 background: #005a87;
@@ -283,13 +282,12 @@ class PUBG_WooCommerce {
                 from { opacity: 0; transform: translateY(-10px); }
                 to { opacity: 1; transform: translateY(0); }
             }
-            /* Responsive Design */
             @media (max-width: 768px) {
                 .pubg-input-wrapper {
                     max-width: 100%;
                 }
                 .pubg-player-input {
-                    padding-right: 70px; /* مساحة أقل للزرار في الموبايل */
+                    padding-right: 70px;
                 }
                 .pubg-verify-btn {
                     padding: 6px 8px;
@@ -307,7 +305,6 @@ class PUBG_WooCommerce {
         let validationTimeout;
         let isValidating = false;
         
-        // تأكد من وجود متغير AJAX
         if (typeof pubg_ajax === 'undefined') {
             window.pubg_ajax = {
                 ajax_url: '<?php echo admin_url('admin-ajax.php'); ?>',
@@ -316,7 +313,7 @@ class PUBG_WooCommerce {
         }
         
         function validatePlayerID(playerId, showLoading = true) {
-            if (isValidating) return; // منع التكرار
+            if (isValidating) return;
             
             if (!/^[0-9]{6,12}$/.test(playerId)) {
                 $input.removeClass('valid loading').addClass('invalid');
@@ -373,7 +370,7 @@ class PUBG_WooCommerce {
                     $verifyBtn.prop('disabled', false).text('Verify');
                 },
                 complete: function() {
-                    isValidating = false; // السماح بالتحقق مرة أخرى
+                    isValidating = false;
                 }
             });
         }
@@ -390,9 +387,6 @@ class PUBG_WooCommerce {
             } else {
                 $verifyBtn.prop('disabled', true);
             }
-            
-            // إلغاء الـ automatic validation
-            // if (playerId.length === 0) return;
         });
         
         $verifyBtn.on('click', function() {
@@ -435,58 +429,52 @@ class PUBG_WooCommerce {
         return $cart_item_data;
     }
     
-public function validate_cart($passed, $product_id, $quantity) {
-    $is_pubg = get_post_meta($product_id, 'is_pubg_recharge', true);
-    
-    if ($is_pubg == 'yes') {
-        if (empty($_POST['player_id'])) {
-            wc_add_notice('Please enter your Player ID', 'error');
-            return false;
-        }
+    public function validate_cart($passed, $product_id, $quantity) {
+        $is_pubg = get_post_meta($product_id, 'is_pubg_recharge', true);
         
-        $player_id = sanitize_text_field($_POST['player_id']);
-        if (!preg_match('/^[0-9]{6,12}$/', $player_id)) {
-            wc_add_notice('Invalid Player ID format. Must be 6-12 digits.', 'error');
-            return false;
-        }
-        
-        // فحص حالة الـ Fallback mode
-        $fallback_active = get_option('pubg_fallback_mode_active', false);
-        $api_status = get_option('pubg_api_last_status', 'unknown');
-        
-        // لو الـ Fallback نشط أو الـ API مش شغال - نخلي العميل يكمل
-        if ($fallback_active || $api_status !== 'healthy') {
-            return $passed; // يكمل عادي
-        }
-        
-        // لو الـ API شغال - نفحص زي العادة
-        $result = pubg_get_player_info($player_id);
-        if (!$result['success'] || !isset($result['data']['status']) || $result['data']['status'] !== 'success') {
-            // لو فشل، نفحص لو السبب مشاكل اتصال
-            $error_keywords = array('connection', 'timeout', 'expired', 'unavailable', 'failed');
-            $is_connection_error = false;
-            
-            foreach ($error_keywords as $keyword) {
-                if (stripos($result['message'], $keyword) !== false) {
-                    $is_connection_error = true;
-                    break;
-                }
-            }
-            
-            if ($is_connection_error) {
-                // مشكلة اتصال - نخلي العميل يكمل
-                update_option('pubg_fallback_mode_active', true);
-                return $passed;
-            } else {
-                // خطأ في الـ Player ID نفسه
-                wc_add_notice('Player ID not found or invalid. Please verify your Player ID.', 'error');
+        if ($is_pubg == 'yes') {
+            if (empty($_POST['player_id'])) {
+                wc_add_notice('Please enter your Player ID', 'error');
                 return false;
             }
+            
+            $player_id = sanitize_text_field($_POST['player_id']);
+            if (!preg_match('/^[0-9]{6,12}$/', $player_id)) {
+                wc_add_notice('Invalid Player ID format. Must be 6-12 digits.', 'error');
+                return false;
+            }
+            
+            $fallback_active = get_option('pubg_fallback_mode_active', false);
+            $api_status = get_option('pubg_api_last_status', 'unknown');
+            
+            if ($fallback_active || $api_status !== 'healthy') {
+                return $passed;
+            }
+            
+            $result = pubg_get_player_info($player_id);
+            if (!$result['success'] || !isset($result['data']['status']) || $result['data']['status'] !== 'success') {
+                $error_keywords = array('connection', 'timeout', 'expired', 'unavailable', 'failed');
+                $is_connection_error = false;
+                
+                foreach ($error_keywords as $keyword) {
+                    if (stripos($result['message'], $keyword) !== false) {
+                        $is_connection_error = true;
+                        break;
+                    }
+                }
+                
+                if ($is_connection_error) {
+                    update_option('pubg_fallback_mode_active', true);
+                    return $passed;
+                } else {
+                    wc_add_notice('Player ID not found or invalid. Please verify your Player ID.', 'error');
+                    return false;
+                }
+            }
         }
+        
+        return $passed;
     }
-    
-    return $passed;
-}
     
     public function add_order_meta($item, $cart_item_key, $values, $order) {
         if (isset($values['player_id'])) {
@@ -506,221 +494,11 @@ public function validate_cart($passed, $product_id, $quantity) {
         }
     }
     
+    // ✅ إزالة process_order من هنا - متوفر في index.php
+    // ✅ هنا مش محتاجين process_order لأنه موجود في index.php
     public function process_order($order_id) {
-        pubg_debug_log("Order status changed, checking for PUBG products", array('order_id' => $order_id));
-        
-        $order = wc_get_order($order_id);
-        if (!$order) {
-            pubg_debug_log("Order not found", array('order_id' => $order_id));
-            return;
-        }
-        
-        $processed = get_post_meta($order_id, '_pubg_processed', true);
-        if ($processed === 'yes') {
-            pubg_debug_log("Order already processed", array('order_id' => $order_id));
-            return;
-        }
-        
-        $has_pubg_items = false;
-        
-        foreach ($order->get_items() as $item_id => $item) {
-            $product_id = $item->get_product_id();
-            $variation_id = $item->get_variation_id();
-            $is_pubg = get_post_meta($product_id, 'is_pubg_recharge', true);
-            
-            if ($is_pubg == 'yes') {
-                $has_pubg_items = true;
-                
-                $player_id = $item->get_meta('_pubg_player_id');
-                if (empty($player_id)) {
-                    $player_id = $item->get_meta('Player ID');
-                }
-                
-                if ($player_id) {
-                    $this->allocate_code($order_id, $product_id, $variation_id, $player_id, $item_id);
-                } else {
-                    pubg_debug_log("No Player ID found for PUBG product", array(
-                        'order_id' => $order_id,
-                        'product_id' => $product_id,
-                        'item_id' => $item_id
-                    ));
-                }
-            }
-        }
-        
-    if ($has_pubg_items) {
-    global $wpdb;
-    $log_table = $wpdb->prefix . 'pubg_recharge_logs';
-    
-    $failed_count = $wpdb->get_var($wpdb->prepare(
-        "SELECT COUNT(*) FROM $log_table WHERE order_id = %d AND status = 'failed'",
-        $order_id
-    ));
-    
-    if ($failed_count == 0) {
-        update_post_meta($order_id, '_pubg_processed', 'yes');
-        pubg_debug_log("PUBG order processing completed successfully", array('order_id' => $order_id));
-    } else {
-        pubg_debug_log("PUBG order has failed items, keeping for retry", array(
-            'order_id' => $order_id,
-            'failed_count' => $failed_count
-        ));
-    }
-}
-    }
-    
-    private function allocate_code($order_id, $product_id, $variation_id, $player_id, $item_id) {
-        global $wpdb;
-        
-        $codes_table = $wpdb->prefix . 'pubg_recharge_codes';
-        $log_table = $wpdb->prefix . 'pubg_recharge_logs';
-        
-        $category_id = $this->get_category_id($product_id, $variation_id);
-        if (!$category_id) {
-            pubg_debug_log("No category found", array('product_id' => $product_id, 'variation_id' => $variation_id));
-            return;
-        }
-        
-        $existing_log = $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM $log_table WHERE order_id = %d AND player_id = %s AND status != 'failed'",
-            $order_id, $player_id
-        ));
-        
-        if ($existing_log) {
-            pubg_debug_log("Already processed", array('order_id' => $order_id, 'player_id' => $player_id));
-            return;
-        }
-        
-        $wpdb->query('START TRANSACTION');
-        
-        try {
-            $wpdb->query("LOCK TABLES $codes_table WRITE");
-            
-            $code = $wpdb->get_row($wpdb->prepare(
-                "SELECT * FROM $codes_table WHERE category_id = %d AND status = 'available' ORDER BY id ASC LIMIT 1",
-                $category_id
-            ));
-            
-            if (!$code) {
-                $wpdb->query("UNLOCK TABLES");
-                $wpdb->query('ROLLBACK');
-                
-                $this->log_operation(0, $order_id, $player_id, 'failed', 'No codes available for this category');
-                return;
-            }
-            
-            $updated = $wpdb->update($codes_table, array(
-                'status' => 'used',
-                'order_id' => $order_id,
-                'player_id' => $player_id,
-                'date_used' => current_time('mysql')
-            ), array('id' => $code->id));
-            
-            $wpdb->query("UNLOCK TABLES");
-            
-            if ($updated) {
-                $wpdb->query('COMMIT');
-                
-                $this->log_operation($code->id, $order_id, $player_id, 'pending', 'Code allocated, processing...');
-                
-                if (get_option('pubg_enable_auto_recharge', 1)) {
-                    $this->send_to_api($code->id, $code->code, $player_id, $order_id);
-                }
-            } else {
-                $wpdb->query('ROLLBACK');
-                pubg_debug_log("Failed to update code status", array('code_id' => $code->id));
-            }
-            
-        } catch (Exception $e) {
-            $wpdb->query("UNLOCK TABLES");
-            $wpdb->query('ROLLBACK');
-            pubg_debug_log("Transaction failed", array('error' => $e->getMessage()));
-        }
-    }
-    
-    private function get_category_id($product_id, $variation_id) {
-        $is_multi_variation = get_post_meta($product_id, 'is_pubg_multi_variation', true);
-        
-        if ($is_multi_variation == 'yes' && $variation_id) {
-            $is_variation_enabled = get_post_meta($variation_id, 'is_pubg_variation_enabled', true);
-            if ($is_variation_enabled == 'yes') {
-                return get_post_meta($variation_id, 'pubg_variation_category_id', true);
-            }
-        } else {
-            return get_post_meta($product_id, 'pubg_category_id', true);
-        }
-        
-        return false;
-    }
-    
-    private function send_to_api($code_id, $code, $player_id, $order_id) {
-        $result = pubg_activate_uc_code($player_id, $code);
-        
-        if ($result['success'] && isset($result['data']['status']) && $result['data']['status'] === 'success') {
-            $this->update_operation_status($code_id, $order_id, 'success', 'UC activated successfully');
-            
-            $order = wc_get_order($order_id);
-            if ($order) {
-                $order->update_status('completed', 'PUBG UC activated successfully for Player ID: ' . $player_id);
-                $this->add_success_message_to_order($order, $player_id);
-            }
-            
-        } else {
-            $error = isset($result['data']['message']) ? $result['data']['message'] : 'Unknown error';
-            $this->update_operation_status($code_id, $order_id, 'failed', 'Activation failed: ' . $error);
-            $this->mark_code_as_failed($code_id);
-            
-            $order = wc_get_order($order_id);
-            if ($order) {
-                $this->add_processing_message_to_order($order, $player_id);
-            }
-        }
-    }
-    
-    private function log_operation($code_id, $order_id, $player_id, $status, $message) {
-        global $wpdb;
-        $log_table = $wpdb->prefix . 'pubg_recharge_logs';
-        
-        $wpdb->insert($log_table, array(
-            'code_id' => $code_id,
-            'order_id' => $order_id,
-            'player_id' => $player_id,
-            'status' => $status,
-            'message' => $message,
-            'date_created' => current_time('mysql')
-        ));
-    }
-    
-    private function update_operation_status($code_id, $order_id, $status, $message) {
-        global $wpdb;
-        $log_table = $wpdb->prefix . 'pubg_recharge_logs';
-        
-        $wpdb->update($log_table, array(
-            'status' => $status,
-            'message' => $message
-        ), array(
-            'code_id' => $code_id,
-            'order_id' => $order_id
-        ));
-    }
-    
-    private function mark_code_as_failed($code_id) {
-        global $wpdb;
-        $codes_table = $wpdb->prefix . 'pubg_recharge_codes';
-        
-        $wpdb->update($codes_table, array(
-            'status' => 'failed'
-        ), array('id' => $code_id));
-    }
-    
-    private function add_success_message_to_order($order, $player_id) {
-        $message = get_option('pubg_success_message', 'Your PUBG UC has been successfully recharged!');
-        $order->add_order_note(sprintf($message . ' (Player ID: %s)', $player_id));
-    }
-    
-    private function add_processing_message_to_order($order, $player_id) {
-        $message = get_option('pubg_processing_message', 'Your order is being processed. UC will be delivered shortly due to high server load.');
-        $order->add_order_note(sprintf($message . ' (Player ID: %s)', $player_id));
+        // ✅ هنستدعي الدالة الموجودة في index.php عشان منكررش الكود
+        pubg_process_order($order_id);
     }
     
     public function display_order_item_meta($item_id, $item, $order) {

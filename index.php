@@ -50,12 +50,15 @@ class PUBG_Recharge_System {
         }
     }
     
-    public function activation() {
-        $db = new PUBG_Database();
-        $db->create_tables();
-        $this->add_default_options();
-        wp_schedule_event(time(), 'daily', 'pubg_daily_cleanup');
-    }
+  public function activation() {
+    $db = new PUBG_Database();
+    $db->create_tables();
+    $this->add_default_options();
+    wp_schedule_event(time(), 'daily', 'pubg_daily_cleanup');
+    
+    $bundle = new PUBG_Bundle();
+    $bundle->upgrade_database();
+}
     
     public function deactivation() {
         wp_clear_scheduled_hook('pubg_daily_cleanup');

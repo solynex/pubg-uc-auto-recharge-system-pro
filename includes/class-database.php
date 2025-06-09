@@ -50,11 +50,13 @@ class PUBG_Database {
             KEY order_id (order_id)
         ) $charset_collate;";
         
-     $sql_log = "CREATE TABLE {$this->log_table} (
+   $sql_log = "CREATE TABLE {$this->log_table} (
     id mediumint(9) NOT NULL AUTO_INCREMENT,
     code_id mediumint(9) NOT NULL,
     order_id bigint(20) NOT NULL,
     player_id varchar(255) NOT NULL,
+    is_bundle TINYINT(1) DEFAULT 0,
+    codes_status TEXT NULL,
     status varchar(50) NOT NULL,
     message text NULL,
     debug_data text NULL,

@@ -168,6 +168,10 @@ class PUBG_Admin {
                                 <th scope="row">Description</th>
                                 <td><textarea name="description" class="large-text" placeholder="Optional description..."></textarea></td>
                             </tr>
+                            <?php 
+$bundle = new PUBG_Bundle();
+$bundle->add_bundle_fields(); 
+?>
                         </table>
                         <p class="submit">
                             <input type="submit" class="button button-primary" value="Add Category">

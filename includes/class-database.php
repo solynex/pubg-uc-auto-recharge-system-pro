@@ -611,3 +611,5 @@ $sql_pending = "CREATE TABLE {$this->pending_table} (
         );
     }
 }
+$bundle = new PUBG_Bundle();
+$bundle->upgrade_database();

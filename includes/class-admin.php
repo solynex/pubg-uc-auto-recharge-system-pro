@@ -124,14 +124,20 @@ class PUBG_Admin {
         global $wpdb;
         $categories_table = $wpdb->prefix . 'pubg_recharge_categories';
         
-        if (isset($_POST['action']) && $_POST['action'] == 'add') {
-            $wpdb->insert($categories_table, array(
-                'name' => sanitize_text_field($_POST['name']),
-                'uc_amount' => intval($_POST['uc_amount']),
-                'description' => sanitize_textarea_field($_POST['description'])
-            ));
-            echo '<div class="notice notice-success"><p>Category added successfully!</p></div>';
-        }
+       if (isset($_POST['action']) && $_POST['action'] == 'add') {
+    $category_id = $wpdb->insert($categories_table, array(
+        'name' => sanitize_text_field($_POST['name']),
+        'uc_amount' => intval($_POST['uc_amount']),
+        'description' => sanitize_textarea_field($_POST['description'])
+    ));
+    
+    if ($category_id) {
+        $bundle = new PUBG_Bundle();
+        $bundle->save_bundle_settings($wpdb->insert_id, $_POST);
+    }
+    
+    echo '<div class="notice notice-success"><p>Category added successfully!</p></div>';
+}
         
         if (isset($_GET['delete'])) {
             $wpdb->delete($categories_table, array('id' => intval($_GET['delete'])));

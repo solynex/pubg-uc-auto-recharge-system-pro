@@ -143,7 +143,7 @@ class PUBG_WooCommerce {
         }
     }
     
-  public function add_player_field() {
+    public function add_player_field() {
         global $product;
         
         $is_pubg = get_post_meta($product->get_id(), 'is_pubg_recharge', true);
@@ -191,7 +191,7 @@ class PUBG_WooCommerce {
             }
             .pubg-player-input {
                 width: 100%;
-                padding: 12px 85px 12px 16px; /* مساحة للزرار من اليمين */
+                padding: 12px 85px 12px 16px;
                 border: 2px solid #ddd;
                 border-radius: 6px;
                 font-size: 16px;
@@ -235,14 +235,13 @@ class PUBG_WooCommerce {
                 align-items: center;
                 justify-content: center;
             }
-            /* RTL Support for Arabic Sites */
             [dir="rtl"] .pubg-player-input {
-                padding: 12px 16px 12px 85px; /* مساحة للزرار من الشمال */
+                padding: 12px 16px 12px 85px;
                 text-align: right;
             }
             [dir="rtl"] .pubg-verify-btn {
                 right: auto;
-                left: 4px; /* الزرار في الشمال للعربي */
+                left: 4px;
             }
             .pubg-verify-btn:hover {
                 background: #005a87;
@@ -283,13 +282,12 @@ class PUBG_WooCommerce {
                 from { opacity: 0; transform: translateY(-10px); }
                 to { opacity: 1; transform: translateY(0); }
             }
-            /* Responsive Design */
             @media (max-width: 768px) {
                 .pubg-input-wrapper {
                     max-width: 100%;
                 }
                 .pubg-player-input {
-                    padding-right: 70px; /* مساحة أقل للزرار في الموبايل */
+                    padding-right: 70px;
                 }
                 .pubg-verify-btn {
                     padding: 6px 8px;
@@ -307,7 +305,6 @@ class PUBG_WooCommerce {
         let validationTimeout;
         let isValidating = false;
         
-        // تأكد من وجود متغير AJAX
         if (typeof pubg_ajax === 'undefined') {
             window.pubg_ajax = {
                 ajax_url: '<?php echo admin_url('admin-ajax.php'); ?>',
@@ -316,7 +313,7 @@ class PUBG_WooCommerce {
         }
         
         function validatePlayerID(playerId, showLoading = true) {
-            if (isValidating) return; // منع التكرار
+            if (isValidating) return;
             
             if (!/^[0-9]{6,12}$/.test(playerId)) {
                 $input.removeClass('valid loading').addClass('invalid');
@@ -373,7 +370,7 @@ class PUBG_WooCommerce {
                     $verifyBtn.prop('disabled', false).text('Verify');
                 },
                 complete: function() {
-                    isValidating = false; // السماح بالتحقق مرة أخرى
+                    isValidating = false;
                 }
             });
         }
@@ -390,9 +387,6 @@ class PUBG_WooCommerce {
             } else {
                 $verifyBtn.prop('disabled', true);
             }
-            
-            // إلغاء الـ automatic validation
-            // if (playerId.length === 0) return;
         });
         
         $verifyBtn.on('click', function() {
@@ -435,58 +429,31 @@ class PUBG_WooCommerce {
         return $cart_item_data;
     }
     
-public function validate_cart($passed, $product_id, $quantity) {
-    $is_pubg = get_post_meta($product_id, 'is_pubg_recharge', true);
-    
-    if ($is_pubg == 'yes') {
-        if (empty($_POST['player_id'])) {
-            wc_add_notice('Please enter your Player ID', 'error');
-            return false;
-        }
+    public function validate_cart($passed, $product_id, $quantity) {
+        $is_pubg = get_post_meta($product_id, 'is_pubg_recharge', true);
         
-        $player_id = sanitize_text_field($_POST['player_id']);
-        if (!preg_match('/^[0-9]{6,12}$/', $player_id)) {
-            wc_add_notice('Invalid Player ID format. Must be 6-12 digits.', 'error');
-            return false;
-        }
-        
-        // فحص حالة الـ Fallback mode
-        $fallback_active = get_option('pubg_fallback_mode_active', false);
-        $api_status = get_option('pubg_api_last_status', 'unknown');
-        
-        // لو الـ Fallback نشط أو الـ API مش شغال - نخلي العميل يكمل
-        if ($fallback_active || $api_status !== 'healthy') {
-            return $passed; // يكمل عادي
-        }
-        
-        // لو الـ API شغال - نفحص زي العادة
-        $result = pubg_get_player_info($player_id);
-        if (!$result['success'] || !isset($result['data']['status']) || $result['data']['status'] !== 'success') {
-            // لو فشل، نفحص لو السبب مشاكل اتصال
-            $error_keywords = array('connection', 'timeout', 'expired', 'unavailable', 'failed');
-            $is_connection_error = false;
-            
-            foreach ($error_keywords as $keyword) {
-                if (stripos($result['message'], $keyword) !== false) {
-                    $is_connection_error = true;
-                    break;
-                }
+        if ($is_pubg == 'yes') {
+            if (empty($_POST['player_id'])) {
+                wc_add_notice('Please enter your Player ID', 'error');
+                return false;
             }
             
-            if ($is_connection_error) {
-                // مشكلة اتصال - نخلي العميل يكمل
-                update_option('pubg_fallback_mode_active', true);
-                return $passed;
-            } else {
-                // خطأ في الـ Player ID نفسه
+            $player_id = sanitize_text_field($_POST['player_id']);
+            if (!preg_match('/^[0-9]{6,12}$/', $player_id)) {
+                wc_add_notice('Invalid Player ID format. Must be 6-12 digits.', 'error');
+                return false;
+            }
+            
+            // تحقق من صحة Player ID عبر API
+            $result = pubg_get_player_info($player_id);
+            if (!$result['success'] || !isset($result['data']['status']) || $result['data']['status'] !== 'success') {
                 wc_add_notice('Player ID not found or invalid. Please verify your Player ID.', 'error');
                 return false;
             }
         }
+        
+        return $passed;
     }
-    
-    return $passed;
-}
     
     public function add_order_meta($item, $cart_item_key, $values, $order) {
         if (isset($values['player_id'])) {
@@ -548,25 +515,25 @@ public function validate_cart($passed, $product_id, $quantity) {
             }
         }
         
-    if ($has_pubg_items) {
-    global $wpdb;
-    $log_table = $wpdb->prefix . 'pubg_recharge_logs';
-    
-    $failed_count = $wpdb->get_var($wpdb->prepare(
-        "SELECT COUNT(*) FROM $log_table WHERE order_id = %d AND status = 'failed'",
-        $order_id
-    ));
-    
-    if ($failed_count == 0) {
-        update_post_meta($order_id, '_pubg_processed', 'yes');
-        pubg_debug_log("PUBG order processing completed successfully", array('order_id' => $order_id));
-    } else {
-        pubg_debug_log("PUBG order has failed items, keeping for retry", array(
-            'order_id' => $order_id,
-            'failed_count' => $failed_count
-        ));
-    }
-}
+        if ($has_pubg_items) {
+            global $wpdb;
+            $log_table = $wpdb->prefix . 'pubg_recharge_logs';
+            
+            $failed_count = $wpdb->get_var($wpdb->prepare(
+                "SELECT COUNT(*) FROM $log_table WHERE order_id = %d AND status = 'failed'",
+                $order_id
+            ));
+            
+            if ($failed_count == 0) {
+                update_post_meta($order_id, '_pubg_processed', 'yes');
+                pubg_debug_log("PUBG order processing completed successfully", array('order_id' => $order_id));
+            } else {
+                pubg_debug_log("PUBG order has failed items, keeping for retry", array(
+                    'order_id' => $order_id,
+                    'failed_count' => $failed_count
+                ));
+            }
+        }
     }
     
     private function allocate_code($order_id, $product_id, $variation_id, $player_id, $item_id) {
